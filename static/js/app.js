@@ -4,6 +4,7 @@ const uploadButton = document.getElementById("uploadButton");
 const uploadStatus = document.getElementById("uploadStatus");
 const summary = document.getElementById("summary");
 const summarySection = document.getElementById("summarySection");
+const languageSelect = document.getElementById("languageSelect");
 
 // Get question elements
 const questionInput = document.getElementById("questionInput");
@@ -29,6 +30,7 @@ uploadButton.addEventListener("click", async function () {
     // Create form data
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("language", languageSelect.value);
 
     uploadStatus.textContent = "Uploading and processing PDF...";
 
@@ -86,7 +88,8 @@ askButton.addEventListener("click", async function () {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                question: question
+                question: question,
+                language: languageSelect.value
             })
         });
 

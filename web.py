@@ -1,5 +1,5 @@
 # Import FastAPI and file upload tools
-from fastapi import FastAPI, UploadFile, File, HTTPException, Request
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 
 
 # Import template tools
@@ -60,6 +60,7 @@ current_chunk_embeddings = []
 # Request model for PDF questions
 class QuestionRequest(BaseModel):
     question: str
+    language: str = "th"
 
 
 # Home page
@@ -73,7 +74,10 @@ def home(request: Request):
 
 # Upload PDF route
 @app.post("/upload")
-async def upload_pdf(file: UploadFile = File(...)):
+async def upload_pdf(
+    file: UploadFile = File(...),
+    language: str = Form("th")
+    ):
 
     global current_chunks, current_chunk_embeddings
 
@@ -92,7 +96,7 @@ async def upload_pdf(file: UploadFile = File(...)):
 
     # Create cache file paths
     embeddings_path = DATA_DIR / f"{pdf_name}_embeddings.json"
-    summary_path = DATA_DIR / f"{pdf_name}_summary.txt"
+    summary_path = DATA_DIR / f"{pdf_name}_summary_{language}.txt"
     hash_path = DATA_DIR / f"{pdf_name}_hash.txt"
 
     # Read uploaded file
@@ -145,7 +149,7 @@ async def upload_pdf(file: UploadFile = File(...)):
         summary = load_summary(summary_path)
 
     else:
-        summary = summarize_text(pdf_text)
+        summary = summarize_text(pdf_text, language)
         save_summary(
             summary,
             summary_path
@@ -200,7 +204,8 @@ def ask_pdf(request: QuestionRequest):
     # Ask AI using relevant PDF context
     answer = ask_question(
         context,
-        request.question
+        request.question,
+        request.language
     )
 
     return {

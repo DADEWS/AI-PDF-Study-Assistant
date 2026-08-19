@@ -157,13 +157,19 @@ def save_summary(summary, file_path):
 
 
 # Summarize PDF text using AI
-def summarize_text(text):
+def summarize_text(text, language="th"):
+    if language == "en":
+        language_instruction = "Write the summary in English."
+    else:
+        language_instruction = "Write the summary in Thai."
+    
     response = client.responses.create(
         model="gpt-5-mini",
         input=f"""
-ช่วยสรุปเนื้อหาต่อไปนี้เป็นภาษาไทย
-แบ่งเป็นหัวข้อสำคัญ และอธิบายให้อ่านง่าย
+Summarize the following PDF content clearly for studying.
+{language_instruction}
 
+PDF content:
 {text}
 """
     )
@@ -200,17 +206,24 @@ def create_pdf_hash(pdf_path):
 
 
 # Answer questions based on PDF content
-def ask_question(text, question):
+def ask_question(text, question, language="th"):
+    if language == "en":
+        language_instruction = "Answer in English."
+    else:
+        language_instruction = "Answer in Thai."
+
     response = client.responses.create(
         model="gpt-5-mini",
         input=f"""
-ตอบคำถามโดยใช้เนื้อหาจาก PDF ต่อไปนี้เท่านั้น
-หากไม่มีข้อมูลใน PDF ให้ตอบว่า "ไม่พบข้อมูลในเอกสาร"
+Answer the question using only the PDF content below.
+If the information is not found in the PDF, say that the information was not found in the document.
 
-เนื้อหา PDF:
+{language_instruction}
+
+PDF content:
 {text}
 
-คำถาม:
+Question:
 {question}
 """
     )
