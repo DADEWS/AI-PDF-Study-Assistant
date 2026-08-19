@@ -18,8 +18,14 @@ from rag import (
     load_summary,
     summarize_text,
     save_summary,
-    save_pdf_hash
+    save_pdf_hash,
+    find_relevant_chunks,
+    ask_question
 )
+
+
+# Import BaseModel for request data
+from pydantic import BaseModel
 
 
 # Create FastAPI application
@@ -28,6 +34,16 @@ app = FastAPI()
 
 # Folder for uploaded PDF files
 DATA_DIR = Path("data")
+
+
+# Store data for the currently uploaded PDF
+current_chunks = []
+current_chunk_embeddings = []
+
+
+# Request model for PDF questions
+class QuestionRequest(BaseModel):
+    question: str
 
 
 # Home route
@@ -41,6 +57,8 @@ def home():
 # Upload PDF route
 @app.post("/upload")
 async def upload_pdf(file: UploadFile = File(...)):
+
+    global current_chunks, current_chunk_embeddings
 
     # Check that the uploaded file is a PDF
     if file.content_type != "application/pdf":
@@ -99,6 +117,10 @@ async def upload_pdf(file: UploadFile = File(...)):
             embeddings_path
         )
 
+    # Store RAG data for question answering
+    current_chunks = chunks
+    current_chunk_embeddings = chunk_embeddings
+
     # Load cached summary if cache is valid
     summary = None
 
@@ -128,4 +150,46 @@ async def upload_pdf(file: UploadFile = File(...)):
         "cache_valid": cache_valid,
         "embedding_count": len(chunk_embeddings),
         "summary_loaded": summary is not None
+    }
+
+
+# Ask question route
+@app.post("/ask")
+def ask_pdf(request: QuestionRequest):
+
+    # Check that a PDF has been uploaded
+    if not current_chunks or not current_chunk_embeddings:
+        raise HTTPException(
+            status_code=400,
+            detail="Please upload a PDF first"
+        )
+
+    # Check that the question is not empty
+    if not request.question.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Question cannot be empty"
+        )
+
+    # Find relevant chunks
+    relevant_chunks = find_relevant_chunks(
+        request.question,
+        current_chunks,
+        current_chunk_embeddings
+    )
+
+    # Combine relevant chunks into context
+    context = "\n\n".join(
+        chunk for score, chunk in relevant_chunks
+    )
+
+    # Ask AI using relevant PDF context
+    answer = ask_question(
+        context,
+        request.question
+    )
+
+    return {
+        "question": request.question,
+        "answer": answer
     }
