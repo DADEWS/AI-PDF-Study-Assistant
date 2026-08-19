@@ -197,3 +197,22 @@ def create_pdf_hash(pdf_path):
             hasher.update(chunk)
 
     return hasher.hexdigest()
+
+
+# Answer questions based on PDF content
+def ask_question(text, question):
+    response = client.responses.create(
+        model="gpt-5-mini",
+        input=f"""
+ตอบคำถามโดยใช้เนื้อหาจาก PDF ต่อไปนี้เท่านั้น
+หากไม่มีข้อมูลใน PDF ให้ตอบว่า "ไม่พบข้อมูลในเอกสาร"
+
+เนื้อหา PDF:
+{text}
+
+คำถาม:
+{question}
+"""
+    )
+
+    return response.output_text
