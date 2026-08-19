@@ -14,7 +14,10 @@ from rag import (
     find_relevant_chunks,
     load_summary,
     save_summary,
-    summarize_text
+    summarize_text,
+    load_pdf_hash,
+    save_pdf_hash,
+    create_pdf_hash
 )
 
 
@@ -49,34 +52,6 @@ SUMMARY_PATH = Path(
 HASH_PATH = Path(
     f"data/{PDF_NAME}_hash.txt"
 )
-
-
-# Create hash from PDF file
-def create_pdf_hash(pdf_path):
-    hash_object = hashlib.sha256()
-
-    with open(pdf_path, "rb") as file:
-        while True:
-            data = file.read(4096)
-
-            if not data:
-                break
-
-            hash_object.update(data)
-
-    return hash_object.hexdigest()
-
-
-# Save PDF hash
-def save_pdf_hash(pdf_hash, file_path):
-    with open(file_path, "w", encoding="utf-8") as file:
-        file.write(pdf_hash)
-
-
-# Load PDF hash
-def load_pdf_hash(file_path):
-    with open(file_path, "r", encoding="utf-8") as file:
-        return file.read()
 
     
 # Answer questions based on PDF content

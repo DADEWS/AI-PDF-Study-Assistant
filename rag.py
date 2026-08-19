@@ -20,6 +20,9 @@ client = OpenAI()
 # Import JSON for saving embedding data
 import json
 
+# Import hashlib for PDF hash
+import hashlib
+
 
 # Extract text from PDF 
 def extract_text_from_pdf(pdf_path):
@@ -166,3 +169,31 @@ def summarize_text(text):
     )
 
     return response.output_text
+
+
+# Load PDF hash from file
+def load_pdf_hash(file_path):
+    with open(file_path, "r", encoding="utf-8") as file:
+        return file.read().strip()
+
+
+# Save PDF hash
+def save_pdf_hash(pdf_hash, file_path):
+    with open(file_path, "w", encoding="utf-8") as file:
+        file.write(pdf_hash)
+
+
+# Create SHA-256 hash from PDF file
+def create_pdf_hash(pdf_path):
+    hasher = hashlib.sha256()
+
+    with open(pdf_path, "rb") as file:
+        while True:
+            chunk = file.read(8192)
+
+            if not chunk:
+                break
+
+            hasher.update(chunk)
+
+    return hasher.hexdigest()
