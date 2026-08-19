@@ -9,7 +9,9 @@ from rag import (
     create_embedding,
     create_chunk_embeddings,
     save_embeddings,
-    load_embeddings
+    load_embeddings,
+    cosine_similarity,
+    find_relevant_chunks
 )
 
 
@@ -44,49 +46,6 @@ SUMMARY_PATH = Path(
 HASH_PATH = Path(
     f"data/{PDF_NAME}_hash.txt"
 )
-
-
-
-# Calculate similarity between two embeddings
-def cosine_similarity(question_embedding, chunk_embedding):
-    dot_product = sum(
-        x * y
-        for x, y in zip(question_embedding, chunk_embedding)
-    )
-
-    magnitude_question = sum(
-        x * x for x in question_embedding
-    ) ** 0.5
-
-    magnitude_chunk = sum(
-        y * y for y in chunk_embedding
-    ) ** 0.5
-
-    return dot_product / (magnitude_question * magnitude_chunk)
-
-
-# Find the most relevant chunks
-def find_relevant_chunks(question, chunks, chunk_embeddings, top_k=3):
-    question_embedding = create_embedding(question)
-
-    scored_chunks = []
-
-    for chunk, chunk_embedding in zip(chunks, chunk_embeddings):
-        score = cosine_similarity(
-            question_embedding,
-            chunk_embedding
-        )
-
-        scored_chunks.append((score, chunk))
-
-    scored_chunks.sort(
-        reverse=True,
-        key=lambda item: item[0]
-    )
-
-    top_chunks = scored_chunks[:top_k]
-
-    return top_chunks
 
 
 # Summarize PDF text using AI
