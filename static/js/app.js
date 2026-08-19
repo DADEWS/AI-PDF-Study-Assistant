@@ -3,12 +3,14 @@ const pdfFile = document.getElementById("pdfFile");
 const uploadButton = document.getElementById("uploadButton");
 const uploadStatus = document.getElementById("uploadStatus");
 const summary = document.getElementById("summary");
+const summarySection = document.getElementById("summarySection");
 
 // Get question elements
 const questionInput = document.getElementById("questionInput");
 const askButton = document.getElementById("askButton");
 const askStatus = document.getElementById("askStatus");
 const answer = document.getElementById("answer");
+const answerSection = document.getElementById("answerSection");
 
 // Upload PDF when the button is clicked
 uploadButton.addEventListener("click", async function () {
@@ -48,6 +50,7 @@ uploadButton.addEventListener("click", async function () {
             "PDF processed successfully: " + data.filename;
 
         summary.textContent = data.summary;
+        summarySection.hidden = false;
 
     } catch (error) {
         uploadStatus.textContent = "Something went wrong.";
@@ -91,6 +94,7 @@ askButton.addEventListener("click", async function () {
         // Show answer
         askStatus.textContent = "Answer generated successfully.";
         answer.textContent = data.answer;
+        answerSection.hidden = false;
 
     } catch (error) {
         askStatus.textContent = "Something went wrong.";
