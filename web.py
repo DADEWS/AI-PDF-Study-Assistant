@@ -6,6 +6,10 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, Request
 from fastapi.templating import Jinja2Templates
 
 
+# Import static file tools
+from fastapi.staticfiles import StaticFiles
+
+
 # Import Path for file paths
 from pathlib import Path
 
@@ -34,6 +38,10 @@ from pydantic import BaseModel
 
 # Create FastAPI application
 app = FastAPI()
+
+
+# Serve static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 # HTML templates
