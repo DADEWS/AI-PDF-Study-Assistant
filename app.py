@@ -11,7 +11,10 @@ from rag import (
     save_embeddings,
     load_embeddings,
     cosine_similarity,
-    find_relevant_chunks
+    find_relevant_chunks,
+    load_summary,
+    save_summary,
+    summarize_text
 )
 
 
@@ -46,33 +49,6 @@ SUMMARY_PATH = Path(
 HASH_PATH = Path(
     f"data/{PDF_NAME}_hash.txt"
 )
-
-
-# Summarize PDF text using AI
-def summarize_text(text):
-    response = client.responses.create(
-        model="gpt-5-mini",
-        input=f"""
-ช่วยสรุปเนื้อหาต่อไปนี้เป็นภาษาไทย
-แบ่งเป็นหัวข้อสำคัญ และอธิบายให้อ่านง่าย
-
-{text}
-"""
-    )
-
-    return response.output_text
-
-
-# Save summary to file
-def save_summary(summary, file_path):
-    with open(file_path, "w", encoding="utf-8") as file:
-        file.write(summary)
-
-
-# Load summary from file
-def load_summary(file_path):
-    with open(file_path, "r", encoding="utf-8") as file:
-        return file.read()
 
 
 # Create hash from PDF file
