@@ -21,6 +21,8 @@ uploadButton.addEventListener("click", async function () {
         return;
     }
 
+    uploadButton.disabled = true;
+
     // Get selected file
     const file = pdfFile.files[0];
 
@@ -51,9 +53,12 @@ uploadButton.addEventListener("click", async function () {
 
         summary.textContent = data.summary;
         summarySection.hidden = false;
+        askButton.disabled = false;
 
     } catch (error) {
         uploadStatus.textContent = "Something went wrong.";
+    } finally {
+        uploadButton.disabled = false;
     }
 });
 
@@ -68,6 +73,8 @@ askButton.addEventListener("click", async function () {
         askStatus.textContent = "Please enter a question.";
         return;
     }
+
+    askButton.disabled = true;
 
     askStatus.textContent = "Thinking...";
 
@@ -98,5 +105,7 @@ askButton.addEventListener("click", async function () {
 
     } catch (error) {
         askStatus.textContent = "Something went wrong.";
+    } finally {
+        askButton.disabled = false;
     }
 });
