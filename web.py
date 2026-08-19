@@ -142,14 +142,11 @@ async def upload_pdf(file: UploadFile = File(...)):
         )
     
     return {
-        "message": "PDF uploaded successfully",
+        "message": "PDF processed successfully",
         "filename": file.filename,
         "text_length": len(pdf_text),
         "chunk_count": len(chunks),
-        "pdf_hash": pdf_hash,
-        "cache_valid": cache_valid,
-        "embedding_count": len(chunk_embeddings),
-        "summary_loaded": summary is not None
+        "summary": summary
     }
 
 
