@@ -1,7 +1,17 @@
 from pathlib import Path
-import pymupdf
 import json
 import hashlib
+
+
+from rag import (
+    extract_text_from_pdf,
+    split_text,
+    create_embedding,
+    create_chunk_embeddings,
+    save_embeddings,
+    load_embeddings
+)
+
 
 # AI setup
 import os
@@ -16,6 +26,7 @@ api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     raise ValueError("ไม่พบ OPENAI_API_KEY ในไฟล์ .env")
 print("พบ API Key")
+
 
 #PATH
 PDF_PATH = Path("data/sample1.pdf")
@@ -34,82 +45,7 @@ HASH_PATH = Path(
     f"data/{PDF_NAME}_hash.txt"
 )
 
-# Extract text from PDF 
-def extract_text_from_pdf(pdf_path):
-    document = pymupdf.open(pdf_path)
 
-    text = ""
-
-    print("จำนวนหน้า:", len(document))
-
-    for page in document:
-        text += page.get_text("text", sort=True)
-
-    document.close()
-
-    return text
-
-# Split text into smaller chunks
-def split_text(text, chunk_size=1000, overlap=200):
-    chunks = []
-
-    start = 0
-
-    while start < len(text):
-        end = start + chunk_size
-
-        chunk = text[start:end]
-        chunks.append(chunk)
-
-        start += chunk_size - overlap
-
-    return chunks
-
-# Create embedding from text
-def create_embedding(text):
-    response = client.embeddings.create(
-        model="text-embedding-3-small",
-        input=text
-    )
-
-    return response.data[0].embedding
-
-# Create embeddings for all chunks
-def create_chunk_embeddings(chunks):
-    embeddings = []
-
-    for chunk in chunks:
-        embedding = create_embedding(chunk)
-        embeddings.append(embedding)
-
-    return embeddings
-
-# Save chunks and embeddings to file
-def save_embeddings(chunks, embeddings, file_path):
-    data = []
-
-    for chunk, embedding in zip(chunks, embeddings):
-        data.append({
-            "chunk": chunk,
-            "embedding": embedding
-        })
-
-    with open(file_path, "w", encoding="utf-8") as file:
-        json.dump(data, file, ensure_ascii=False)
-
-# Load chunks and embeddings from file
-def load_embeddings(file_path):
-    with open(file_path, "r", encoding="utf-8") as file:
-        data = json.load(file)
-
-    chunks = []
-    embeddings = []
-
-    for item in data:
-        chunks.append(item["chunk"])
-        embeddings.append(item["embedding"])
-
-    return chunks, embeddings
 
 # Calculate similarity between two embeddings
 def cosine_similarity(question_embedding, chunk_embedding):
@@ -127,6 +63,7 @@ def cosine_similarity(question_embedding, chunk_embedding):
     ) ** 0.5
 
     return dot_product / (magnitude_question * magnitude_chunk)
+
 
 # Find the most relevant chunks
 def find_relevant_chunks(question, chunks, chunk_embeddings, top_k=3):
@@ -151,6 +88,7 @@ def find_relevant_chunks(question, chunks, chunk_embeddings, top_k=3):
 
     return top_chunks
 
+
 # Summarize PDF text using AI
 def summarize_text(text):
     response = client.responses.create(
@@ -165,15 +103,18 @@ def summarize_text(text):
 
     return response.output_text
 
+
 # Save summary to file
 def save_summary(summary, file_path):
     with open(file_path, "w", encoding="utf-8") as file:
         file.write(summary)
 
+
 # Load summary from file
 def load_summary(file_path):
     with open(file_path, "r", encoding="utf-8") as file:
         return file.read()
+
 
 # Create hash from PDF file
 def create_pdf_hash(pdf_path):
@@ -190,15 +131,18 @@ def create_pdf_hash(pdf_path):
 
     return hash_object.hexdigest()
 
+
 # Save PDF hash
 def save_pdf_hash(pdf_hash, file_path):
     with open(file_path, "w", encoding="utf-8") as file:
         file.write(pdf_hash)
 
+
 # Load PDF hash
 def load_pdf_hash(file_path):
     with open(file_path, "r", encoding="utf-8") as file:
         return file.read()
+
     
 # Answer questions based on PDF content
 def ask_question(text, question):
