@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>AI PDF Study Assistant</title>
+
+    <link rel="stylesheet" href="/static/css/style.css">
 </head>
 
 
@@ -13,39 +16,45 @@
 
     <p>Upload a PDF to summarize and ask questions.</p>
 
-    <h2>Upload PDF</h2>
+    <section>
+        <h2>Upload PDF</h2>
+        <div class="input-row">
+            <input type="file" id="pdfFile" accept=".pdf">
 
-    <input type="file" id="pdfFile" accept=".pdf">
+            <button type="button" id="uploadButton">
+                Upload
+            </button>
+        </div>
+        <p id="uploadStatus"></p>
+    </section>
 
-    <button type="button" id="uploadButton">
-        Upload
-    </button>
+    <section>
+        <h2>Summary</h2>
+        <pre id="summary"></pre>
+    </section>
+    
+    <section>
+        <h2>Ask PDF</h2>
+        <div class="input-row">
+            <input
+                type="text"
+                id="questionInput"
+                placeholder="Ask a question about the PDF"
+            >
 
-    <p id="uploadStatus"></p>
+            <button type="button" id="askButton">
+                Ask
+            </button>
+        </div>
+        <p id="askStatus"></p>
 
-    <h2>Summary</h2>
-    <pre id="summary"></pre>
-
-    <h2>Ask PDF</h2>
-
-    <input
-        type="text"
-        id="questionInput"
-        placeholder="Ask a question about the PDF"
-    >
-
-    <button type="button" id="askButton">
-        Ask
-    </button>
-
-    <p id="askStatus"></p>
-
-    <h2>Answer</h2>
-    <pre id="answer"></pre>
+        <h2>Answer</h2>
+        <pre id="answer"></pre>
+    </section>
 
 
     <script src="/static/js/app.js"></script>
 
-    
+
 </body>
 </html>
