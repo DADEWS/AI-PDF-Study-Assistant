@@ -26,14 +26,37 @@
     <h2>Summary</h2>
     <pre id="summary"></pre>
 
-    
+    <h2>Ask PDF</h2>
+
+    <input
+        type="text"
+        id="questionInput"
+        placeholder="Ask a question about the PDF"
+    >
+
+    <button type="button" id="askButton">
+        Ask
+    </button>
+
+    <p id="askStatus"></p>
+
+    <h2>Answer</h2>
+    <pre id="answer"></pre>
+
+
     <script>
+
     // Get HTML elements
     const pdfFile = document.getElementById("pdfFile");
     const uploadButton = document.getElementById("uploadButton");
     const uploadStatus = document.getElementById("uploadStatus");
     const summary = document.getElementById("summary");
 
+    // Get question elements
+    const questionInput = document.getElementById("questionInput");
+    const askButton = document.getElementById("askButton");
+    const askStatus = document.getElementById("askStatus");
+    const answer = document.getElementById("answer");
 
     // Upload PDF when the button is clicked
     uploadButton.addEventListener("click", async function () {
@@ -78,6 +101,50 @@
             uploadStatus.textContent = "Something went wrong.";
         }
     });
+
+    // Ask a question about the PDF
+    askButton.addEventListener("click", async function () {
+
+        // Get question text
+        const question = questionInput.value.trim();
+
+        // Check that the question is not empty
+        if (question === "") {
+            askStatus.textContent = "Please enter a question.";
+            return;
+        }
+
+        askStatus.textContent = "Thinking...";
+
+        try {
+            // Send question to FastAPI
+            const response = await fetch("/ask", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    question: question
+                })
+            });
+
+            const data = await response.json();
+
+            // Check for errors
+            if (!response.ok) {
+                askStatus.textContent = data.detail;
+                return;
+            }
+
+            // Show answer
+            askStatus.textContent = "Answer generated successfully.";
+            answer.textContent = data.answer;
+
+        } catch (error) {
+            askStatus.textContent = "Something went wrong.";
+        }
+    });
+    
     </script>
 
 </body>
