@@ -13,6 +13,34 @@ const askStatus = document.getElementById("askStatus");
 const answer = document.getElementById("answer");
 const answerSection = document.getElementById("answerSection");
 
+// Clear old results when a new PDF is selected
+pdfFile.addEventListener("change", function () {
+    summary.textContent = "";
+    summarySection.hidden = true;
+
+    answer.textContent = "";
+    answerSection.hidden = true;
+
+    uploadStatus.textContent = "";
+    askStatus.textContent = "";
+
+    questionInput.value = "";
+
+    askButton.disabled = true;
+});
+
+
+// Clear old results when the output language changes
+languageSelect.addEventListener("change", function () {
+    summary.textContent = "";
+    summarySection.hidden = true;
+
+    answer.textContent = "";
+    answerSection.hidden = true;
+
+    askStatus.textContent = "";
+});
+
 // Upload PDF when the button is clicked
 uploadButton.addEventListener("click", async function () {
 
@@ -21,6 +49,17 @@ uploadButton.addEventListener("click", async function () {
         uploadStatus.textContent = "Please select a PDF file.";
         return;
     }
+    // Clear old results while processing a new upload
+    summary.textContent = "";
+    summarySection.hidden = true;
+
+    answer.textContent = "";
+    answerSection.hidden = true;
+
+    askStatus.textContent = "";
+    questionInput.value = "";
+
+    askButton.disabled = true;
 
     uploadButton.disabled = true;
 
