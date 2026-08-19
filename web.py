@@ -1,5 +1,9 @@
 # Import FastAPI and file upload tools
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Request
+
+
+# Import template tools
+from fastapi.templating import Jinja2Templates
 
 
 # Import Path for file paths
@@ -32,6 +36,10 @@ from pydantic import BaseModel
 app = FastAPI()
 
 
+# HTML templates
+templates = Jinja2Templates(directory="templates")
+
+
 # Folder for uploaded PDF files
 DATA_DIR = Path("data")
 
@@ -46,12 +54,13 @@ class QuestionRequest(BaseModel):
     question: str
 
 
-# Home route
+# Home page
 @app.get("/")
-def home():
-    return {
-        "message": "AI PDF Study Assistant"
-    }
+def home(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html"
+    )
 
 
 # Upload PDF route

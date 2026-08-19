@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI PDF Study Assistant</title>
+</head>
+
+
+<body>
+
+    <h1>AI PDF Study Assistant</h1>
+
+    <p>Upload a PDF to summarize and ask questions.</p>
+
+    <h2>Upload PDF</h2>
+
+    <input type="file" id="pdfFile" accept=".pdf">
+
+    <button type="button" id="uploadButton">
+        Upload
+    </button>
+
+    <p id="uploadStatus"></p>
+
+    <h2>Summary</h2>
+    <pre id="summary"></pre>
+
+    
+    <script>
+    // Get HTML elements
+    const pdfFile = document.getElementById("pdfFile");
+    const uploadButton = document.getElementById("uploadButton");
+    const uploadStatus = document.getElementById("uploadStatus");
+    const summary = document.getElementById("summary");
+
+
+    // Upload PDF when the button is clicked
+    uploadButton.addEventListener("click", async function () {
+
+        // Check that a file has been selected
+        if (pdfFile.files.length === 0) {
+            uploadStatus.textContent = "Please select a PDF file.";
+            return;
+        }
+
+        // Get selected file
+        const file = pdfFile.files[0];
+
+        // Create form data
+        const formData = new FormData();
+        formData.append("file", file);
+
+        uploadStatus.textContent = "Uploading and processing PDF...";
+
+        try {
+            // Send PDF to FastAPI
+            const response = await fetch("/upload", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+
+            // Check for upload errors
+            if (!response.ok) {
+                uploadStatus.textContent = data.detail;
+                return;
+            }
+
+            // Show result
+            uploadStatus.textContent =
+                "PDF processed successfully: " + data.filename;
+
+            summary.textContent = data.summary;
+
+        } catch (error) {
+            uploadStatus.textContent = "Something went wrong.";
+        }
+    });
+    </script>
+
+</body>
+</html>
