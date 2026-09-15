@@ -99,6 +99,55 @@ def get_document_by_hash(user_id, pdf_hash):
     return document
 
 
+# Get all documents owned by a user
+def get_documents_by_user(user_id):
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    query = """
+        SELECT id, filename, file_path, pdf_hash, created_at
+        FROM documents
+        WHERE user_id = %s
+        ORDER BY created_at DESC
+    """
+
+    cursor.execute(
+        query,
+        (user_id,)
+    )
+
+    documents = cursor.fetchall()
+
+    cursor.close()
+    connection.close()
+
+    return documents
+
+
+# Get a document owned by a specific user
+def get_document_by_id(user_id, document_id):
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    query = """
+        SELECT id, user_id, filename, file_path, pdf_hash, created_at
+        FROM documents
+        WHERE id = %s AND user_id = %s
+        LIMIT 1
+    """
+
+    cursor.execute(
+        query,
+        (document_id, user_id)
+    )
+
+    document = cursor.fetchone()
+
+    cursor.close()
+    connection.close()
+
+    return document
+
 # Create a new document record
 def create_document(user_id, filename, file_path, pdf_hash):
     connection = get_db_connection()

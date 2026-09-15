@@ -23,6 +23,8 @@ from database import (
     create_user,
     get_user_by_login,
     get_document_by_hash,
+    get_documents_by_user,
+    get_document_by_id,
     create_document
 )
 
@@ -90,11 +92,6 @@ templates = Jinja2Templates(directory="templates")
 
 # Folder for uploaded PDF files
 DATA_DIR = Path("data")
-
-
-# Store data for the currently uploaded PDF
-current_chunks = []
-current_chunk_embeddings = []
 
 
 # Request model for PDF questions
@@ -232,6 +229,64 @@ def get_current_user(request: Request):
     }
 
 
+# Get documents owned by the current user
+@app.get("/documents")
+def get_user_documents(request: Request):
+
+    # Get logged-in user ID
+    user_id = request.session.get("user_id")
+
+    if user_id is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Please log in first"
+        )
+
+    # Get documents from database
+    documents = get_documents_by_user(user_id)
+
+    return {
+        "documents": documents
+    }
+
+
+# Select a document for the current user
+@app.post("/documents/{document_id}/select")
+def select_document(document_id: int, request: Request):
+
+    # Get logged-in user ID
+    user_id = request.session.get("user_id")
+
+    if user_id is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Please log in first"
+        )
+
+    # Find the document and verify ownership
+    document = get_document_by_id(
+        user_id,
+        document_id
+    )
+
+    if document is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Document not found"
+        )
+
+    # Store selected document in the session
+    request.session["current_document_id"] = document["id"]
+
+    return {
+        "message": "Document selected successfully",
+        "document": {
+            "id": document["id"],
+            "filename": document["filename"]
+        }
+    }
+
+
 # Log out the current user
 @app.post("/logout")
 def logout_user(request: Request):
@@ -250,8 +305,6 @@ async def upload_pdf(
     file: UploadFile = File(...),
     language: str = Form("th")
 ):
-
-    global current_chunks, current_chunk_embeddings
 
     # Check that the user is logged in
     user_id = request.session.get("user_id")
@@ -361,6 +414,9 @@ async def upload_pdf(
             pdf_hash
         )
 
+    # Store the uploaded document as the current document
+    request.session["current_document_id"] = document_id
+
     return {
         "message": "PDF processed successfully",
         "document_id": document_id,
@@ -384,11 +440,49 @@ def ask_pdf(data: QuestionRequest, request: Request):
             detail="Please log in first"
         )
 
-    # Check that a PDF has been uploaded
-    if not current_chunks or not current_chunk_embeddings:
+    # Get the selected document ID from the session
+    document_id = request.session.get("current_document_id")
+
+    if document_id is None:
         raise HTTPException(
             status_code=400,
-            detail="Please upload a PDF first"
+            detail="Please upload or select a PDF first"
+        )
+
+    # Get the selected document and verify ownership
+    document = get_document_by_id(
+        user_id,
+        document_id
+    )
+
+    if document is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Document not found"
+        )
+
+    # Build the embeddings cache path
+    file_path = Path(document["file_path"])
+    pdf_name = file_path.stem
+    embeddings_path = DATA_DIR / f"{pdf_name}_embeddings.json"
+
+    # Load embeddings for the selected document
+    if embeddings_path.exists():
+        chunks, chunk_embeddings = load_embeddings(
+            embeddings_path
+        )
+
+    else:
+        # Rebuild embeddings if the cache is missing
+        pdf_text = extract_text_from_pdf(file_path)
+        chunks = split_text(pdf_text)
+
+        chunk_embeddings = create_chunk_embeddings(chunks)
+
+        save_embeddings(
+            chunks,
+            chunk_embeddings,
+            embeddings_path
         )
 
     # Check that the question is not empty
@@ -401,8 +495,8 @@ def ask_pdf(data: QuestionRequest, request: Request):
     # Find relevant chunks
     relevant_chunks = find_relevant_chunks(
         data.question,
-        current_chunks,
-        current_chunk_embeddings
+        chunks,
+        chunk_embeddings
     )
 
     # Combine relevant chunks into context
