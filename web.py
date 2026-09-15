@@ -241,11 +241,21 @@ def logout_user(request: Request):
 # Upload PDF route
 @app.post("/upload")
 async def upload_pdf(
+    request: Request,
     file: UploadFile = File(...),
     language: str = Form("th")
 ):
 
     global current_chunks, current_chunk_embeddings
+
+    # Check that the user is logged in
+    user_id = request.session.get("user_id")
+
+    if user_id is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Please log in first"
+        )
 
     # Check that the uploaded file is a PDF
     if file.content_type != "application/pdf":
@@ -339,7 +349,16 @@ async def upload_pdf(
 
 # Ask question route
 @app.post("/ask")
-def ask_pdf(request: QuestionRequest):
+def ask_pdf(data: QuestionRequest, request: Request):
+
+    # Check that the user is logged in
+    user_id = request.session.get("user_id")
+
+    if user_id is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Please log in first"
+        )
 
     # Check that a PDF has been uploaded
     if not current_chunks or not current_chunk_embeddings:
@@ -349,7 +368,7 @@ def ask_pdf(request: QuestionRequest):
         )
 
     # Check that the question is not empty
-    if not request.question.strip():
+    if not data.question.strip():
         raise HTTPException(
             status_code=400,
             detail="Question cannot be empty"
@@ -357,7 +376,7 @@ def ask_pdf(request: QuestionRequest):
 
     # Find relevant chunks
     relevant_chunks = find_relevant_chunks(
-        request.question,
+        data.question,
         current_chunks,
         current_chunk_embeddings
     )
@@ -370,11 +389,11 @@ def ask_pdf(request: QuestionRequest):
     # Ask AI using relevant PDF context
     answer = ask_question(
         context,
-        request.question,
-        request.language
+        data.question,
+        data.language
     )
 
     return {
-        "question": request.question,
+        "question": data.question,
         "answer": answer
     }
