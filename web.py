@@ -14,6 +14,18 @@ from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
 
+# Import database functions
+from database import create_user
+
+
+# Import authentication functions
+from auth import hash_password
+
+
+# Import MySQL error
+from mysql.connector import IntegrityError
+
+
 # Import function from another file
 from rag import (
     extract_text_from_pdf,
@@ -63,6 +75,13 @@ class QuestionRequest(BaseModel):
     language: str = "th"
 
 
+# Request model for user registration
+class RegisterRequest(BaseModel):
+    username: str
+    email: str
+    password: str
+
+
 # Home page
 @app.get("/")
 def home(request: Request):
@@ -71,13 +90,57 @@ def home(request: Request):
         name="index.html"
     )
 
+# Register a new user
+@app.post("/register")
+def register_user(request: RegisterRequest):
+
+    # Check that all fields are filled
+    if (
+        not request.username.strip()
+        or not request.email.strip()
+        or not request.password
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="All fields are required"
+        )
+
+    # Check password length
+    if len(request.password) < 8:
+        raise HTTPException(
+            status_code=400,
+            detail="Password must be at least 8 characters"
+        )
+
+    # Hash password before saving
+    password_hash = hash_password(request.password)
+
+    try:
+        user_id = create_user(
+            request.username.strip(),
+            request.email.strip(),
+            password_hash
+        )
+
+    except IntegrityError:
+        raise HTTPException(
+            status_code=400,
+            detail="Username or email already exists"
+        )
+
+    return {
+        "message": "User registered successfully",
+        "user_id": user_id,
+        "username": request.username
+    }
+
 
 # Upload PDF route
 @app.post("/upload")
 async def upload_pdf(
     file: UploadFile = File(...),
     language: str = Form("th")
-    ):
+):
 
     global current_chunks, current_chunk_embeddings
 

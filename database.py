@@ -24,6 +24,29 @@ def get_db_connection():
 
     return connection
 
+# Create a new user
+def create_user(username, email, password_hash):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    query = """
+        INSERT INTO users (username, email, password_hash)
+        VALUES (%s, %s, %s)
+    """
+
+    cursor.execute(
+        query,
+        (username, email, password_hash)
+    )
+
+    connection.commit()
+
+    user_id = cursor.lastrowid
+
+    cursor.close()
+    connection.close()
+
+    return user_id
 
 # Test database connection
 if __name__ == "__main__":
