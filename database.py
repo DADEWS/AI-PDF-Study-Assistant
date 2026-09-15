@@ -48,6 +48,32 @@ def create_user(username, email, password_hash):
 
     return user_id
 
+
+# Find a user by username or email
+def get_user_by_login(login):
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    query = """
+        SELECT id, username, email, password_hash
+        FROM users
+        WHERE username = %s OR email = %s
+        LIMIT 1
+    """
+
+    cursor.execute(
+        query,
+        (login, login)
+    )
+
+    user = cursor.fetchone()
+
+    cursor.close()
+    connection.close()
+
+    return user
+
+
 # Test database connection
 if __name__ == "__main__":
     connection = get_db_connection()

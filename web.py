@@ -15,11 +15,11 @@ from pathlib import Path
 
 
 # Import database functions
-from database import create_user
+from database import create_user, get_user_by_login
 
 
 # Import authentication functions
-from auth import hash_password
+from auth import hash_password, verify_password
 
 
 # Import MySQL error
@@ -82,6 +82,12 @@ class RegisterRequest(BaseModel):
     password: str
 
 
+# Request model for user login
+class LoginRequest(BaseModel):
+    login: str
+    password: str
+
+
 # Home page
 @app.get("/")
 def home(request: Request):
@@ -132,6 +138,45 @@ def register_user(request: RegisterRequest):
         "message": "User registered successfully",
         "user_id": user_id,
         "username": request.username
+    }
+
+
+# Log in a user
+@app.post("/login")
+def login_user(request: LoginRequest):
+
+    # Check that all fields are filled
+    if not request.login.strip() or not request.password:
+        raise HTTPException(
+            status_code=400,
+            detail="All fields are required"
+        )
+
+    # Find user in database
+    user = get_user_by_login(request.login.strip())
+
+    # Check username or email
+    if user is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid username/email or password"
+        )
+
+    # Check password
+    if not verify_password(
+        request.password,
+        user["password_hash"]
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid username/email or password"
+        )
+
+    return {
+        "message": "Login successful",
+        "user_id": user["id"],
+        "username": user["username"],
+        "email": user["email"]
     }
 
 
