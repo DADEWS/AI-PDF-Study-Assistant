@@ -15,6 +15,42 @@
     <h1>AI PDF Study Assistant</h1>
 
     <p>Upload a PDF to summarize and ask questions.</p>
+    <section id="accountSection">
+        <h2>Account</h2>
+
+        <div id="loginForm">
+            <div class="input-row">
+                <input
+                    type="text"
+                    id="loginInput"
+                    placeholder="Username or email"
+                >
+
+                <input
+                    type="password"
+                    id="passwordInput"
+                    placeholder="Password"
+                >
+
+                <button type="button" id="loginButton">
+                    Login
+                </button>
+            </div>
+        </div>
+
+        <div id="userPanel" hidden>
+            <p>
+                Logged in as:
+                <strong id="currentUsername"></strong>
+            </p>
+
+            <button type="button" id="logoutButton">
+                Logout
+            </button>
+        </div>
+
+        <p id="loginStatus"></p>
+    </section>
 
     <label for="languageSelect">Output Language</label>
 
@@ -63,7 +99,7 @@
         <pre id="answer"></pre>
     </section>
 
-    <script src="/static/js/app.js"></script>
+    <script src="/static/js/app.js?v=4"></script>
 
 
 </body>

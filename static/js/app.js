@@ -13,6 +13,115 @@ const askStatus = document.getElementById("askStatus");
 const answer = document.getElementById("answer");
 const answerSection = document.getElementById("answerSection");
 
+// Get account elements
+const loginInput = document.getElementById("loginInput");
+const passwordInput = document.getElementById("passwordInput");
+const loginButton = document.getElementById("loginButton");
+const logoutButton = document.getElementById("logoutButton");
+const loginForm = document.getElementById("loginForm");
+const userPanel = document.getElementById("userPanel");
+const currentUsername = document.getElementById("currentUsername");
+const loginStatus = document.getElementById("loginStatus");
+
+
+// Show logged-in user
+function showLoggedInUser(username) {
+    currentUsername.textContent = username;
+
+    loginForm.hidden = true;
+    userPanel.hidden = false;
+
+    loginInput.value = "";
+    passwordInput.value = "";
+}
+
+
+// Show logged-out state
+function showLoggedOutUser() {
+    currentUsername.textContent = "";
+
+    loginForm.hidden = false;
+    userPanel.hidden = true;
+}
+
+
+// Log in
+loginButton.addEventListener("click", async function () {
+
+    const login = loginInput.value.trim();
+    const password = passwordInput.value;
+
+    if (login === "" || password === "") {
+        loginStatus.textContent =
+            "Please enter username/email and password.";
+        return;
+    }
+
+    loginButton.disabled = true;
+    loginStatus.textContent = "Logging in...";
+
+    try {
+        const response = await fetch("/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                login: login,
+                password: password
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            loginStatus.textContent = data.detail;
+            return;
+        }
+
+        showLoggedInUser(data.username);
+        loginStatus.textContent = "Login successful.";
+
+    } catch (error) {
+        loginStatus.textContent = "Something went wrong.";
+
+    } finally {
+        loginButton.disabled = false;
+    }
+});
+
+
+// Log out
+logoutButton.addEventListener("click", async function () {
+
+    try {
+        const response = await fetch("/logout", {
+            method: "POST"
+        });
+
+        if (!response.ok) {
+            loginStatus.textContent = "Logout failed.";
+            return;
+        }
+
+        showLoggedOutUser();
+
+        summary.textContent = "";
+        summarySection.hidden = true;
+
+        answer.textContent = "";
+        answerSection.hidden = true;
+
+        askButton.disabled = true;
+
+        loginStatus.textContent = "Logout successful.";
+
+    } catch (error) {
+        loginStatus.textContent = "Something went wrong.";
+    }
+});
+
+
 // Clear old results when a new PDF is selected
 pdfFile.addEventListener("change", function () {
     summary.textContent = "";
@@ -41,6 +150,7 @@ languageSelect.addEventListener("change", function () {
     askStatus.textContent = "";
 });
 
+
 // Upload PDF when the button is clicked
 uploadButton.addEventListener("click", async function () {
 
@@ -49,6 +159,7 @@ uploadButton.addEventListener("click", async function () {
         uploadStatus.textContent = "Please select a PDF file.";
         return;
     }
+
     // Clear old results while processing a new upload
     summary.textContent = "";
     summarySection.hidden = true;
@@ -60,7 +171,6 @@ uploadButton.addEventListener("click", async function () {
     questionInput.value = "";
 
     askButton.disabled = true;
-
     uploadButton.disabled = true;
 
     // Get selected file
@@ -71,7 +181,8 @@ uploadButton.addEventListener("click", async function () {
     formData.append("file", file);
     formData.append("language", languageSelect.value);
 
-    uploadStatus.textContent = "Uploading and processing PDF...";
+    uploadStatus.textContent =
+        "Uploading and processing PDF...";
 
     try {
         // Send PDF to FastAPI
@@ -94,14 +205,17 @@ uploadButton.addEventListener("click", async function () {
 
         summary.textContent = data.summary;
         summarySection.hidden = false;
+
         askButton.disabled = false;
 
     } catch (error) {
         uploadStatus.textContent = "Something went wrong.";
+
     } finally {
         uploadButton.disabled = false;
     }
 });
+
 
 // Ask a question about the PDF
 askButton.addEventListener("click", async function () {
@@ -109,18 +223,15 @@ askButton.addEventListener("click", async function () {
     // Get question text
     const question = questionInput.value.trim();
 
-    // Check that the question is not empty
     if (question === "") {
         askStatus.textContent = "Please enter a question.";
         return;
     }
 
     askButton.disabled = true;
-
     askStatus.textContent = "Thinking...";
 
     try {
-        // Send question to FastAPI
         const response = await fetch("/ask", {
             method: "POST",
             headers: {
@@ -134,20 +245,43 @@ askButton.addEventListener("click", async function () {
 
         const data = await response.json();
 
-        // Check for errors
         if (!response.ok) {
             askStatus.textContent = data.detail;
             return;
         }
 
-        // Show answer
-        askStatus.textContent = "Answer generated successfully.";
+        askStatus.textContent =
+            "Answer generated successfully.";
+
         answer.textContent = data.answer;
         answerSection.hidden = false;
 
     } catch (error) {
         askStatus.textContent = "Something went wrong.";
+
     } finally {
         askButton.disabled = false;
     }
 });
+
+
+// Check login session when the page loads
+async function checkLoginStatus() {
+    try {
+        const response = await fetch("/me");
+
+        if (!response.ok) {
+            showLoggedOutUser();
+            return;
+        }
+
+        const data = await response.json();
+
+        showLoggedInUser(data.username);
+
+    } catch (error) {
+        showLoggedOutUser();
+    }
+}
+
+checkLoginStatus();
