@@ -19,7 +19,12 @@ from pathlib import Path
 
 
 # Import database functions
-from database import create_user, get_user_by_login
+from database import (
+    create_user,
+    get_user_by_login,
+    get_document_by_hash,
+    create_document
+)
 
 
 # Import authentication functions
@@ -337,9 +342,28 @@ async def upload_pdf(
             pdf_hash,
             hash_path
         )
-    
+
+    # Check if this document already exists for the user
+    existing_document = get_document_by_hash(
+        user_id,
+        pdf_hash
+    )
+
+    if existing_document is not None:
+        document_id = existing_document["id"]
+
+    else:
+        # Save new document information to database
+        document_id = create_document(
+            user_id,
+            file.filename,
+            file_path,
+            pdf_hash
+        )
+
     return {
         "message": "PDF processed successfully",
+        "document_id": document_id,
         "filename": file.filename,
         "text_length": len(pdf_text),
         "chunk_count": len(chunks),

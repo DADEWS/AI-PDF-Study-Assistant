@@ -74,6 +74,66 @@ def get_user_by_login(login):
     return user
 
 
+# Find an existing document by user and PDF hash
+def get_document_by_hash(user_id, pdf_hash):
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+
+    query = """
+        SELECT id, user_id, filename, file_path, pdf_hash
+        FROM documents
+        WHERE user_id = %s AND pdf_hash = %s
+        LIMIT 1
+    """
+
+    cursor.execute(
+        query,
+        (user_id, pdf_hash)
+    )
+
+    document = cursor.fetchone()
+
+    cursor.close()
+    connection.close()
+
+    return document
+
+
+# Create a new document record
+def create_document(user_id, filename, file_path, pdf_hash):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    query = """
+        INSERT INTO documents (
+            user_id,
+            filename,
+            file_path,
+            pdf_hash
+        )
+        VALUES (%s, %s, %s, %s)
+    """
+
+    cursor.execute(
+        query,
+        (
+            user_id,
+            filename,
+            str(file_path),
+            pdf_hash
+        )
+    )
+
+    connection.commit()
+
+    document_id = cursor.lastrowid
+
+    cursor.close()
+    connection.close()
+
+    return document_id
+
+
 # Test database connection
 if __name__ == "__main__":
     connection = get_db_connection()
