@@ -2,6 +2,10 @@
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 
 
+# Import session middleware
+from starlette.middleware.sessions import SessionMiddleware
+
+
 # Import template tools
 from fastapi.templating import Jinja2Templates
 
@@ -26,6 +30,10 @@ from auth import hash_password, verify_password
 from mysql.connector import IntegrityError
 
 
+# Import operating system tools
+import os
+
+
 # Import function from another file
 from rag import (
     extract_text_from_pdf,
@@ -48,8 +56,23 @@ from rag import (
 from pydantic import BaseModel
 
 
+# Import environment tools
+from dotenv import load_dotenv
+
+
+# Load environment variables
+load_dotenv()
+
+
 # Create FastAPI application
 app = FastAPI()
+
+
+# Add session support
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.getenv("SESSION_SECRET_KEY")
+)
 
 
 # Serve static files
@@ -143,17 +166,17 @@ def register_user(request: RegisterRequest):
 
 # Log in a user
 @app.post("/login")
-def login_user(request: LoginRequest):
+def login_user(data: LoginRequest, request: Request):
 
     # Check that all fields are filled
-    if not request.login.strip() or not request.password:
+    if not data.login.strip() or not data.password:
         raise HTTPException(
             status_code=400,
             detail="All fields are required"
         )
 
     # Find user in database
-    user = get_user_by_login(request.login.strip())
+    user = get_user_by_login(data.login.strip())
 
     # Check username or email
     if user is None:
@@ -164,7 +187,7 @@ def login_user(request: LoginRequest):
 
     # Check password
     if not verify_password(
-        request.password,
+        data.password,
         user["password_hash"]
     ):
         raise HTTPException(
@@ -172,11 +195,46 @@ def login_user(request: LoginRequest):
             detail="Invalid username/email or password"
         )
 
+    # Store user data in session
+    request.session["user_id"] = user["id"]
+    request.session["username"] = user["username"]
+    request.session["email"] = user["email"]
+
     return {
         "message": "Login successful",
         "user_id": user["id"],
         "username": user["username"],
         "email": user["email"]
+    }
+
+
+# Get the currently logged-in user
+@app.get("/me")
+def get_current_user(request: Request):
+
+    user_id = request.session.get("user_id")
+
+    if user_id is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Not logged in"
+        )
+
+    return {
+        "user_id": user_id,
+        "username": request.session.get("username"),
+        "email": request.session.get("email")
+    }
+
+
+# Log out the current user
+@app.post("/logout")
+def logout_user(request: Request):
+
+    request.session.clear()
+
+    return {
+        "message": "Logout successful"
     }
 
 
