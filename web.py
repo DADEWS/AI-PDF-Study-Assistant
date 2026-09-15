@@ -41,11 +41,14 @@ from mysql.connector import IntegrityError
 import os
 
 
+# Import hashing tools
+import hashlib
+
+
 # Import function from another file
 from rag import (
     extract_text_from_pdf,
     split_text,
-    create_pdf_hash,
     load_pdf_hash,
     load_embeddings,
     create_chunk_embeddings,
@@ -92,6 +95,10 @@ templates = Jinja2Templates(directory="templates")
 
 # Folder for uploaded PDF files
 DATA_DIR = Path("data")
+
+
+# Make sure the data folder exists
+DATA_DIR.mkdir(exist_ok=True)
 
 
 # Request model for PDF questions
@@ -322,8 +329,36 @@ async def upload_pdf(
             detail="Only PDF files are allowed"
         )
     
-    # Create destination file path
-    file_path = DATA_DIR / file.filename
+    # Read uploaded file
+    file_content = await file.read()
+
+    # Create PDF hash from uploaded content
+    pdf_hash = hashlib.sha256(file_content).hexdigest()
+
+    # Check if this document already exists for the user
+    existing_document = get_document_by_hash(
+        user_id,
+        pdf_hash
+    )
+
+    # Use the existing path if the document already exists
+    if existing_document is not None:
+        file_path = Path(existing_document["file_path"])
+        document_filename = existing_document["filename"]
+
+    else:
+        # Keep only the file name for safety
+        safe_filename = Path(file.filename).name
+
+        # Create a unique stored file name
+        stored_filename = (
+            f"user_{user_id}_"
+            f"{pdf_hash[:16]}_"
+            f"{safe_filename}"
+        )
+
+        file_path = DATA_DIR / stored_filename
+        document_filename = safe_filename
 
     # Get PDF name without extension
     pdf_name = file_path.stem
@@ -332,9 +367,6 @@ async def upload_pdf(
     embeddings_path = DATA_DIR / f"{pdf_name}_embeddings.json"
     summary_path = DATA_DIR / f"{pdf_name}_summary_{language}.txt"
     hash_path = DATA_DIR / f"{pdf_name}_hash.txt"
-
-    # Read uploaded file
-    file_content = await file.read()
 
     # Save uploaded file
     with open(file_path, "wb") as saved_file:
@@ -345,9 +377,6 @@ async def upload_pdf(
 
     # Split extracted text into chunks
     chunks = split_text(pdf_text)
-
-    # Create PDF hash
-    pdf_hash = create_pdf_hash(file_path)
 
     # Check if cached PDF hash matches current PDF
     cache_valid = False
@@ -372,10 +401,6 @@ async def upload_pdf(
             embeddings_path
         )
 
-    # Store RAG data for question answering
-    current_chunks = chunks
-    current_chunk_embeddings = chunk_embeddings
-
     # Load cached summary if cache is valid
     summary = None
 
@@ -395,13 +420,7 @@ async def upload_pdf(
             pdf_hash,
             hash_path
         )
-
-    # Check if this document already exists for the user
-    existing_document = get_document_by_hash(
-        user_id,
-        pdf_hash
-    )
-
+        
     if existing_document is not None:
         document_id = existing_document["id"]
 
@@ -409,7 +428,7 @@ async def upload_pdf(
         # Save new document information to database
         document_id = create_document(
             user_id,
-            file.filename,
+            document_filename,
             file_path,
             pdf_hash
         )
@@ -420,12 +439,11 @@ async def upload_pdf(
     return {
         "message": "PDF processed successfully",
         "document_id": document_id,
-        "filename": file.filename,
+        "filename": document_filename,
         "text_length": len(pdf_text),
         "chunk_count": len(chunks),
         "summary": summary
     }
-
 
 # Ask question route
 @app.post("/ask")
