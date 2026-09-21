@@ -415,6 +415,9 @@ async function loadDocuments() {
             const selectButton = document.createElement("button");
             selectButton.textContent = "Select";
 
+            const deleteButton = document.createElement("button");
+            deleteButton.textContent = "Delete";
+
             selectButton.addEventListener("click", async function () {
 
                 documentsStatus.textContent = "Selecting document...";
@@ -459,8 +462,63 @@ async function loadDocuments() {
                 }
             });
 
+            deleteButton.addEventListener("click", async function () {
+
+                const confirmed = confirm(
+                    "Delete " + pdfDocument.filename + "?"
+                );
+
+                if (!confirmed) {
+                    return;
+                }
+
+                documentsStatus.textContent = "Deleting document...";
+
+                try {
+                    const response = await fetch(
+                        "/documents/" + pdfDocument.id,
+                        {
+                            method: "DELETE"
+                        }
+                    );
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        documentsStatus.textContent = data.detail;
+                        return;
+                    }
+
+                    // Clear the UI if the deleted document was selected
+                    if (selectedDocumentId === pdfDocument.id) {
+                        selectedDocumentId = null;
+
+                        summary.textContent = "";
+                        summarySection.hidden = true;
+
+                        answer.textContent = "";
+                        answerSection.hidden = true;
+
+                        askStatus.textContent = "";
+                        questionInput.value = "";
+
+                        askButton.disabled = true;
+                    }
+
+                    documentsStatus.textContent =
+                        "Document deleted successfully.";
+
+                    loadDocuments();
+
+                } catch (error) {
+                    documentsStatus.textContent =
+                        "Something went wrong.";
+                }
+            });
+
             item.appendChild(filename);
             item.appendChild(selectButton);
+            item.appendChild(deleteButton);
 
             documentsList.appendChild(item);
         });

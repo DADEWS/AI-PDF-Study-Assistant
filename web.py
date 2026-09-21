@@ -25,7 +25,8 @@ from database import (
     get_document_by_hash,
     get_documents_by_user,
     get_document_by_id,
-    create_document
+    create_document,
+    delete_document
 )
 
 
@@ -314,6 +315,79 @@ def select_document(
         "document_id": document_id,
         "filename": document["filename"],
         "summary": summary
+    }
+
+
+# Delete a document owned by the current user
+@app.delete("/documents/{document_id}")
+def remove_document(
+    document_id: int,
+    request: Request
+):
+    user_id = request.session.get("user_id")
+
+    if user_id is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Please log in first"
+        )
+
+    # Get document and verify ownership
+    document = get_document_by_id(
+        user_id,
+        document_id
+    )
+
+    if document is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Document not found"
+        )
+
+    file_path = Path(document["file_path"])
+    pdf_name = file_path.stem
+
+    # Delete the original PDF
+    if file_path.exists():
+        file_path.unlink()
+
+    # Delete embedding cache
+    embeddings_path = DATA_DIR / f"{pdf_name}_embeddings.json"
+
+    if embeddings_path.exists():
+        embeddings_path.unlink()
+
+    # Delete PDF hash cache
+    hash_path = DATA_DIR / f"{pdf_name}_hash.txt"
+
+    if hash_path.exists():
+        hash_path.unlink()
+
+    # Delete all summary language caches
+    for summary_path in DATA_DIR.glob(
+        f"{pdf_name}_summary_*.txt"
+    ):
+        summary_path.unlink()
+
+    # Delete document record from MySQL
+    deleted_count = delete_document(
+        user_id,
+        document_id
+    )
+
+    if deleted_count == 0:
+        raise HTTPException(
+            status_code=404,
+            detail="Document not found"
+        )
+
+    # Clear selected document if it was deleted
+    if request.session.get("current_document_id") == document_id:
+        request.session.pop("current_document_id", None)
+
+    return {
+        "message": "Document deleted successfully",
+        "document_id": document_id
     }
 
 

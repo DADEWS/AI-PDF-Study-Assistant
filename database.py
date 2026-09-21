@@ -183,6 +183,31 @@ def create_document(user_id, filename, file_path, pdf_hash):
     return document_id
 
 
+# Delete a document owned by a user
+def delete_document(user_id, document_id):
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    query = """
+        DELETE FROM documents
+        WHERE id = %s AND user_id = %s
+    """
+
+    cursor.execute(
+        query,
+        (document_id, user_id)
+    )
+
+    connection.commit()
+
+    deleted_count = cursor.rowcount
+
+    cursor.close()
+    connection.close()
+
+    return deleted_count
+
+
 # Test database connection
 if __name__ == "__main__":
     connection = get_db_connection()
