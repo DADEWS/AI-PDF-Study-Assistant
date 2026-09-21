@@ -416,7 +416,28 @@ async function loadDocuments() {
             selectButton.textContent = "Select";
 
             const deleteButton = document.createElement("button");
-            deleteButton.textContent = "Delete";
+            deleteButton.classList.add("delete-button");
+            deleteButton.title = "Delete document";
+            deleteButton.setAttribute("aria-label", "Delete document");
+
+            deleteButton.innerHTML = `
+                <svg
+                    width="30"
+                    height=30"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <path d="M3 6h18"></path>
+                    <path d="M8 6V4h8v2"></path>
+                    <path d="M19 6l-1 14H6L5 6"></path>
+                    <path d="M10 11v5"></path>
+                    <path d="M14 11v5"></path>
+                </svg>
+            `;
 
             selectButton.addEventListener("click", async function () {
 
@@ -516,9 +537,14 @@ async function loadDocuments() {
                 }
             });
 
+            const buttonGroup = document.createElement("div");
+            buttonGroup.classList.add("document-actions");
+
+            buttonGroup.appendChild(selectButton);
+            buttonGroup.appendChild(deleteButton);
+
             item.appendChild(filename);
-            item.appendChild(selectButton);
-            item.appendChild(deleteButton);
+            item.appendChild(buttonGroup);
 
             documentsList.appendChild(item);
         });

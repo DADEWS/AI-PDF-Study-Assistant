@@ -79,3 +79,34 @@ button:disabled {
     justify-content: space-between;
     margin-bottom: 8px;
 }
+
+.document-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.delete-button {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    width: 40px;
+    height: 36px;
+    padding: 0;
+    border-radius: 6px;
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-button:hover {
+    background-color: #bb2d3b;
+}
+
+.delete-button svg {
+    width: 22px;
+    height: 22px;
+    display: block;
+}
