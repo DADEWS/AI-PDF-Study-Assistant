@@ -23,12 +23,21 @@ const userPanel = document.getElementById("userPanel");
 const currentUsername = document.getElementById("currentUsername");
 const loginStatus = document.getElementById("loginStatus");
 
+// Get register elements
+const registerUsername = document.getElementById("registerUsername");
+const registerEmail = document.getElementById("registerEmail");
+const registerPassword = document.getElementById("registerPassword");
+const registerButton = document.getElementById("registerButton");
+const registerForm = document.getElementById("registerForm");
+const registerStatus = document.getElementById("registerStatus");
+
 
 // Show logged-in user
 function showLoggedInUser(username) {
     currentUsername.textContent = username;
 
     loginForm.hidden = true;
+    registerForm.hidden = true;
     userPanel.hidden = false;
 
     loginInput.value = "";
@@ -41,6 +50,7 @@ function showLoggedOutUser() {
     currentUsername.textContent = "";
 
     loginForm.hidden = false;
+    registerForm.hidden = false;
     userPanel.hidden = true;
 }
 
@@ -87,6 +97,57 @@ loginButton.addEventListener("click", async function () {
 
     } finally {
         loginButton.disabled = false;
+    }
+});
+
+
+// Register a new user
+registerButton.addEventListener("click", async function () {
+
+    const username = registerUsername.value.trim();
+    const email = registerEmail.value.trim();
+    const password = registerPassword.value;
+
+    if (username === "" || email === "" || password === "") {
+        registerStatus.textContent = "Please fill in all fields.";
+        return;
+    }
+
+    registerButton.disabled = true;
+    registerStatus.textContent = "Creating account...";
+
+    try {
+        const response = await fetch("/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username: username,
+                email: email,
+                password: password
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            registerStatus.textContent = data.detail;
+            return;
+        }
+
+        registerUsername.value = "";
+        registerEmail.value = "";
+        registerPassword.value = "";
+
+        registerStatus.textContent =
+            "Account created successfully. You can now log in.";
+
+    } catch (error) {
+        registerStatus.textContent = "Something went wrong.";
+
+    } finally {
+        registerButton.disabled = false;
     }
 });
 
