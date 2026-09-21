@@ -5,6 +5,7 @@ const uploadStatus = document.getElementById("uploadStatus");
 const summary = document.getElementById("summary");
 const summarySection = document.getElementById("summarySection");
 const languageSelect = document.getElementById("languageSelect");
+let selectedDocumentId = null;
 
 // Get question elements
 const questionInput = document.getElementById("questionInput");
@@ -212,15 +213,51 @@ pdfFile.addEventListener("change", function () {
 });
 
 
-// Clear old results when the output language changes
-languageSelect.addEventListener("change", function () {
-    summary.textContent = "";
-    summarySection.hidden = true;
+// Reload the selected document when the output language changes
+languageSelect.addEventListener("change", async function () {
 
     answer.textContent = "";
     answerSection.hidden = true;
-
     askStatus.textContent = "";
+
+    if (selectedDocumentId === null) {
+        summary.textContent = "";
+        summarySection.hidden = true;
+        return;
+    }
+
+    summary.textContent = "";
+    summarySection.hidden = true;
+
+    documentsStatus.textContent = "Loading summary...";
+
+    try {
+        const response = await fetch(
+            "/documents/" + selectedDocumentId +
+            "/select?language=" + languageSelect.value,
+            {
+                method: "POST"
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            documentsStatus.textContent = data.detail;
+            return;
+        }
+
+        if (data.summary) {
+            summary.textContent = data.summary;
+            summarySection.hidden = false;
+        }
+
+        documentsStatus.textContent =
+            "Selected: " + data.filename;
+
+    } catch (error) {
+        documentsStatus.textContent = "Something went wrong.";
+    }
 });
 
 
@@ -278,6 +315,8 @@ uploadButton.addEventListener("click", async function () {
 
         summary.textContent = data.summary;
         summarySection.hidden = false;
+
+        selectedDocumentId = data.document_id;
 
         askButton.disabled = false;
 
@@ -379,7 +418,8 @@ async function loadDocuments() {
 
                 try {
                     const response = await fetch(
-                        "/documents/" + pdfDocument.id + "/select",
+                        "/documents/" + pdfDocument.id +
+                        "/select?language=" + languageSelect.value,
                         {
                             method: "POST"
                         }
@@ -392,8 +432,22 @@ async function loadDocuments() {
                         return;
                     }
 
+                    selectedDocumentId = pdfDocument.id;
+
                     documentsStatus.textContent =
                         "Selected: " + pdfDocument.filename;
+
+                    if (data.summary) {
+                        summary.textContent = data.summary;
+                        summarySection.hidden = false;
+                    } else {
+                        summary.textContent = "";
+                        summarySection.hidden = true;
+                    }
+                    
+                    answer.textContent = "";
+                    answerSection.hidden = true;
+                    askStatus.textContent = "";
 
                     askButton.disabled = false;
 

@@ -58,7 +58,7 @@ from rag import (
     save_summary,
     save_pdf_hash,
     find_relevant_chunks,
-    ask_question
+    ask_question,
 )
 
 
@@ -259,38 +259,60 @@ def get_user_documents(request: Request):
 
 # Select a document for the current user
 @app.post("/documents/{document_id}/select")
-def select_document(document_id: int, request: Request):
-
-    # Get logged-in user ID
+def select_document(
+    document_id: int,
+    request: Request,
+    language: str = "th"
+):
     user_id = request.session.get("user_id")
 
-    if user_id is None:
+    if not user_id:
         raise HTTPException(
             status_code=401,
-            detail="Please log in first"
+            detail="Not logged in."
         )
 
-    # Find the document and verify ownership
     document = get_document_by_id(
         user_id,
         document_id
     )
 
-    if document is None:
+    if not document:
         raise HTTPException(
             status_code=404,
-            detail="Document not found"
+            detail="Document not found."
         )
 
-    # Store selected document in the session
-    request.session["current_document_id"] = document["id"]
+    request.session["current_document_id"] = document_id
+
+    pdf_path = Path(document["file_path"])
+    summary_path = Path("data") / (
+        pdf_path.stem + f"_summary_{language}.txt"
+    )
+
+    summary = ""
+
+    if summary_path.exists():
+        summary = load_summary(summary_path)
+
+    else:
+        pdf_text = extract_text_from_pdf(pdf_path)
+
+        summary = summarize_text(
+            pdf_text,
+            language
+        )
+
+        save_summary(
+            summary,
+            summary_path
+        )
 
     return {
-        "message": "Document selected successfully",
-        "document": {
-            "id": document["id"],
-            "filename": document["filename"]
-        }
+        "message": "Document selected.",
+        "document_id": document_id,
+        "filename": document["filename"],
+        "summary": summary
     }
 
 
