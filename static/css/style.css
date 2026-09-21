@@ -41,7 +41,8 @@ pre {
 }
 
 input[type="text"],
-input[type="password"] {
+input[type="password"],
+input[type="email"] {
     flex: 1;
     padding: 10px 12px;
     border: 1px solid #ccc;

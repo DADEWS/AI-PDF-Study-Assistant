@@ -23,6 +23,11 @@ const userPanel = document.getElementById("userPanel");
 const currentUsername = document.getElementById("currentUsername");
 const loginStatus = document.getElementById("loginStatus");
 
+// Get document history elements
+const documentsSection = document.getElementById("documentsSection");
+const documentsList = document.getElementById("documentsList");
+const documentsStatus = document.getElementById("documentsStatus");
+
 // Get register elements
 const registerUsername = document.getElementById("registerUsername");
 const registerEmail = document.getElementById("registerEmail");
@@ -39,6 +44,7 @@ function showLoggedInUser(username) {
     loginForm.hidden = true;
     registerForm.hidden = true;
     userPanel.hidden = false;
+    documentsSection.hidden = false;
 
     loginInput.value = "";
     passwordInput.value = "";
@@ -52,6 +58,10 @@ function showLoggedOutUser() {
     loginForm.hidden = false;
     registerForm.hidden = false;
     userPanel.hidden = true;
+
+    documentsSection.hidden = true;
+    documentsList.innerHTML = "";
+    documentsStatus.textContent = "";
 }
 
 
@@ -90,6 +100,8 @@ loginButton.addEventListener("click", async function () {
         }
 
         showLoggedInUser(data.username);
+        loadDocuments();
+
         loginStatus.textContent = "Login successful.";
 
     } catch (error) {
@@ -269,6 +281,8 @@ uploadButton.addEventListener("click", async function () {
 
         askButton.disabled = false;
 
+        loadDocuments();
+
     } catch (error) {
         uploadStatus.textContent = "Something went wrong.";
 
@@ -324,6 +338,44 @@ askButton.addEventListener("click", async function () {
         askButton.disabled = false;
     }
 });
+
+
+// Load documents owned by the current user
+async function loadDocuments() {
+
+    documentsList.innerHTML = "";
+    documentsStatus.textContent = "Loading documents...";
+
+    try {
+        const response = await fetch("/documents");
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            documentsStatus.textContent = data.detail;
+            return;
+        }
+
+        if (data.documents.length === 0) {
+            documentsStatus.textContent = "No documents found.";
+            return;
+        }
+
+        documentsStatus.textContent = "";
+
+        data.documents.forEach(function (pdfDocument) {
+
+            const item = document.createElement("p");
+
+            item.textContent = pdfDocument.filename;
+
+            documentsList.appendChild(item);
+        });
+
+    } catch (error) {
+        documentsStatus.textContent = "Something went wrong.";
+    }
+}
 
 
 // Check login session when the page loads
