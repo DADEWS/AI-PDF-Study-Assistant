@@ -179,6 +179,7 @@ logoutButton.addEventListener("click", async function () {
         }
 
         showLoggedOutUser();
+        selectedDocumentId = null;
 
         summary.textContent = "";
         summarySection.hidden = true;
@@ -198,6 +199,8 @@ logoutButton.addEventListener("click", async function () {
 
 // Clear old results when a new PDF is selected
 pdfFile.addEventListener("change", function () {
+    selectedDocumentId = null;
+
     summary.textContent = "";
     summarySection.hidden = true;
 
