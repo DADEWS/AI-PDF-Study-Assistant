@@ -7,6 +7,13 @@ const summarySection = document.getElementById("summarySection");
 const languageSelect = document.getElementById("languageSelect");
 let selectedDocumentId = null;
 
+// Restore saved language
+const savedLanguage = localStorage.getItem("selectedLanguage");
+
+if (savedLanguage === "th" || savedLanguage === "en") {
+    languageSelect.value = savedLanguage;
+}
+
 // Get question elements
 const questionInput = document.getElementById("questionInput");
 const askButton = document.getElementById("askButton");
@@ -218,6 +225,11 @@ pdfFile.addEventListener("change", function () {
 
 // Reload the selected document when the output language changes
 languageSelect.addEventListener("change", async function () {
+
+    localStorage.setItem(
+        "selectedLanguage",
+        languageSelect.value
+    );
 
     answer.textContent = "";
     answerSection.hidden = true;
