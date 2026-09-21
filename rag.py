@@ -162,11 +162,23 @@ def summarize_text(text, language="th"):
         language_instruction = "Write the summary in English."
     else:
         language_instruction = "Write the summary in Thai."
-    
+
     response = client.responses.create(
         model="gpt-5-mini",
         input=f"""
-Summarize the following PDF content clearly for studying.
+Create a detailed study summary of the following PDF content.
+
+Requirements:
+- Cover all major topics and important sections found in the document.
+- Explain important concepts, definitions, and key ideas clearly.
+- Preserve important examples, facts, and relationships when useful.
+- Organize the summary with clear headings and bullet points.
+- Make the level of detail proportional to the amount of content.
+- Do not make the summary overly short.
+- Do not add information that is not supported by the PDF.
+- Do not add follow-up offers such as "If you want, I can..."
+- Focus only on producing useful study notes.
+
 {language_instruction}
 
 PDF content:

@@ -427,6 +427,7 @@ async function checkLoginStatus() {
         const data = await response.json();
 
         showLoggedInUser(data.username);
+        loadDocuments();
 
     } catch (error) {
         showLoggedOutUser();
