@@ -483,8 +483,32 @@ async function checkLoginStatus() {
 
         const data = await response.json();
 
+        selectedDocumentId = data.current_document_id;
+
         showLoggedInUser(data.username);
         loadDocuments();
+
+        if (selectedDocumentId !== null) {
+            askButton.disabled = false;
+
+            const response = await fetch(
+                "/documents/" + selectedDocumentId +
+                "/select?language=" + languageSelect.value,
+                {
+                    method: "POST"
+                }
+            );
+
+            const documentData = await response.json();
+
+            if (response.ok && documentData.summary) {
+                summary.textContent = documentData.summary;
+                summarySection.hidden = false;
+
+                documentsStatus.textContent =
+                    "Selected: " + documentData.filename;
+            }
+        }
 
     } catch (error) {
         showLoggedOutUser();

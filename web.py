@@ -232,7 +232,8 @@ def get_current_user(request: Request):
     return {
         "user_id": user_id,
         "username": request.session.get("username"),
-        "email": request.session.get("email")
+        "email": request.session.get("email"),
+        "current_document_id": request.session.get("current_document_id")
     }
 
 
