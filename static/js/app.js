@@ -365,9 +365,45 @@ async function loadDocuments() {
 
         data.documents.forEach(function (pdfDocument) {
 
-            const item = document.createElement("p");
+            const item = document.createElement("div");
 
-            item.textContent = pdfDocument.filename;
+            const filename = document.createElement("span");
+            filename.textContent = pdfDocument.filename;
+
+            const selectButton = document.createElement("button");
+            selectButton.textContent = "Select";
+
+            selectButton.addEventListener("click", async function () {
+
+                documentsStatus.textContent = "Selecting document...";
+
+                try {
+                    const response = await fetch(
+                        "/documents/" + pdfDocument.id + "/select",
+                        {
+                            method: "POST"
+                        }
+                    );
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        documentsStatus.textContent = data.detail;
+                        return;
+                    }
+
+                    documentsStatus.textContent =
+                        "Selected: " + pdfDocument.filename;
+
+                    askButton.disabled = false;
+
+                } catch (error) {
+                    documentsStatus.textContent = "Something went wrong.";
+                }
+            });
+
+            item.appendChild(filename);
+            item.appendChild(selectButton);
 
             documentsList.appendChild(item);
         });

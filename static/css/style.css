@@ -72,3 +72,10 @@ button:disabled {
     background-color: #aaa;
     cursor: not-allowed;
 }
+
+#documentsList > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
