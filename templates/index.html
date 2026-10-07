@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI PDF Study Assistant</title>
+
+    <link rel="stylesheet" href="/static/css/style.css?v=2">
+</head>
+
+
+<body>
+
+    <h1>AI PDF Study Assistant</h1>
+
+    <p>Upload a PDF to summarize and ask questions.</p>
+    <section id="accountSection">
+        <h2>Account</h2>
+
+        <div id="loginForm">
+            <div class="input-row">
+                <input
+                    type="text"
+                    id="loginInput"
+                    placeholder="Username or email"
+                >
+
+                <input
+                    type="password"
+                    id="passwordInput"
+                    placeholder="Password"
+                >
+
+                <button type="button" id="loginButton">
+                    Login
+                </button>
+            </div>
+        </div>
+
+        <div id="registerForm">
+            <h3>Create Account</h3>
+
+            <div class="input-row">
+                <input
+                    type="text"
+                    id="registerUsername"
+                    placeholder="Username"
+                >
+
+                <input
+                    type="email"
+                    id="registerEmail"
+                    placeholder="Email"
+                >
+
+                <input
+                    type="password"
+                    id="registerPassword"
+                    placeholder="Password"
+                >
+
+                <button type="button" id="registerButton">
+                    Register
+                </button>
+            </div>
+
+            <p id="registerStatus"></p>
+        </div>
+
+        <div id="userPanel" hidden>
+            <p>
+                Logged in as:
+                <strong id="currentUsername"></strong>
+            </p>
+
+            <button type="button" id="logoutButton">
+                Logout
+            </button>
+        </div>
+
+        <p id="loginStatus"></p>
+    </section>
+
+    <section id="documentsSection" hidden>
+        <h2>My Documents</h2>
+
+        <div id="documentsList">
+        </div>
+
+        <p id="documentsStatus"></p>
+    </section>
+
+    <label for="languageSelect">Output Language</label>
+
+    <select id="languageSelect">
+        <option value="th">ไทย</option>
+        <option value="en">English</option>
+    </select>
+    
+    <section>
+        <h2>Upload PDF</h2>
+        <div class="input-row">
+            <input type="file" id="pdfFile" accept=".pdf">
+
+            <button type="button" id="uploadButton">
+                Upload
+            </button>
+        </div>
+        <p id="uploadStatus"></p>
+    </section>
+
+    <section id="summarySection" hidden>
+        <h2>Summary</h2>
+        <pre id="summary"></pre>
+    </section>
+    
+    <section>
+        <h2>Ask PDF</h2>
+        <div class="input-row">
+            <input
+                type="text"
+                id="questionInput"
+                placeholder="Ask a question about the PDF"
+            >
+
+            <button type="button" id="askButton" disabled>
+                Ask
+            </button>
+        </div>
+        <p id="askStatus"></p>
+
+       
+    </section>
+
+    <section id="answerSection" hidden>
+         <h2>Answer</h2>
+        <pre id="answer"></pre>
+    </section>
+
+    <script src="/static/js/app.js?v=4"></script>
+
+
+</body>
+</html>
