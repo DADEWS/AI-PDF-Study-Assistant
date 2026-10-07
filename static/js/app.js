@@ -435,7 +435,7 @@ async function loadDocuments() {
             deleteButton.innerHTML = `
                 <svg
                     width="30"
-                    height=30"
+                    height="30"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
