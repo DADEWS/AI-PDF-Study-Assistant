@@ -220,10 +220,18 @@ def create_pdf_hash(pdf_path):
 # Answer questions based on PDF content
 def ask_question(text, question, language="th"):
     if language == "en":
-        language_instruction = "Answer in English."
-    else:
-        language_instruction = "Answer in Thai."
-
+        language_instruction = (
+            "Answer entirely in English. "
+            "Do not use Thai or any other language in the answer, "
+            "even if the PDF contains text in another language. "
+            "Translate relevant information into English."
+        )
+    else:   
+        language_instruction = (
+            "Answer entirely in Thai. "
+            "Do not switch to another language unless a technical term "
+            "must remain in its original form."
+        )
     response = client.responses.create(
         model="gpt-5-mini",
         input=f"""
@@ -237,7 +245,7 @@ PDF content:
 
 Question:
 {question}
-"""
+""" 
     )
 
     return response.output_text
