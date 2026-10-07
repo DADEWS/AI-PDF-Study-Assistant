@@ -160,8 +160,8 @@ AI-PDF/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/DADEWS/AI-PDF.git
-cd AI-PDF
+git clone https://github.com/DADEWS/AI-PDF-Study-Assistant.git
+cd AI-PDF-Study-Assistant
 ```
 
 ### 2. Create a virtual environment
